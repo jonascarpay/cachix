@@ -20,8 +20,19 @@ producer mgr queue = do
   watchDir mgr "/nix/store" filterOnlyStorePaths (queueStorePathAction queue)
 
 queueStorePathAction :: PushQueue.Queue -> Event -> IO ()
-queueStorePathAction queue (Removed lockFile _ _) = atomically $ TBQueue.writeTBQueue queue (toS $ dropLast 5 lockFile)
+queueStorePathAction queue (Removed lockFile _ _) =
+  if skipPush fp
+     then putStrLn $ "Skipping " <> fp
+     else atomically $ TBQueue.writeTBQueue queue (toS fp)
+  where 
+    fp = dropLast 5 lockFile
 queueStorePathAction _ _ = return ()
+
+skipPush :: FilePath -> Bool
+skipPush fp
+  | "-source" `isSuffixOf` fp = True
+  | "-skip-push" `isSuffixOf` fp = True
+skipPush _ = False
 
 dropLast :: Int -> [a] -> [a]
 dropLast index xs = take (length xs - index) xs
