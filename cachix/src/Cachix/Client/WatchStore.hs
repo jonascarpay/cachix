@@ -6,7 +6,7 @@ where
 import Cachix.Client.Push
 import qualified Cachix.Client.PushQueue as PushQueue
 import qualified Control.Concurrent.STM.TBQueue as TBQueue
-import Data.List (isSuffixOf)
+import Data.List (isSuffixOf, isInfixOf)
 import Protolude
 import System.FSNotify
 
@@ -32,6 +32,7 @@ skipPush :: FilePath -> Bool
 skipPush fp
   | "-source" `isSuffixOf` fp = True
   | "-skip-push" `isSuffixOf` fp = True
+  | "docker" `isInfixOf` fp = True
 skipPush _ = False
 
 dropLast :: Int -> [a] -> [a]
